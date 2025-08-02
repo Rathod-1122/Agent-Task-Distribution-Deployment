@@ -6,6 +6,8 @@ const router = express.Router();
 const dotenv = require('dotenv')
 const users = require('../models/UserRegisterSchema');
 
+app.use(express.json());
+
 router.post('/register', async (req, res) => {
 
   // console.log('inside the register API')
