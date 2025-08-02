@@ -5,9 +5,8 @@ const jwt = require('jsonwebtoken')
 const router = express.Router();
 const dotenv = require('dotenv')
 const users = require('../models/UserRegisterSchema');
-app.use(express.json());
 
-
+// app.use(express.json());
 router.get('/login/:email/:password', async (req, res) => {
 
   // console.log('inside the login API')
