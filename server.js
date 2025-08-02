@@ -17,10 +17,10 @@ app.listen(4444, () => {
 
 
 //------------Code for deployment------------
-app.use(express.static(path.join(__dirname,"./Client/build")));
+app.use(express.static(path.join(__dirname,"./admin/build")));
 
 app.get("*",(req,res)=>{
-    res.sendFile(path.join(__dirname,"./Client/build/index.html"));
+    res.sendFile(path.join(__dirname,"./admin/build/index.html"));
 });
 //---------------------------------------
 
