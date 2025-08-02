@@ -6,6 +6,7 @@ const router = express.Router();
 const dotenv = require('dotenv')
 const users = require('../models/UserRegisterSchema');
 
+const app = express();
 app.use(express.json());
 
 router.post('/register', async (req, res) => {
