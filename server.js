@@ -19,9 +19,9 @@ app.listen(4444, () => {
 //------------Code for deployment------------
 app.use(express.static(path.join(__dirname,"./admin/build")));
 
-app.get("*",(req,res)=>{
-    res.sendFile(path.join(__dirname,"./admin/build/index.html"));
-});
+// app.get("*",(req,res)=>{
+//     res.sendFile(path.join(__dirname,"./admin/build/index.html"));
+// });
 //---------------------------------------
 
 
