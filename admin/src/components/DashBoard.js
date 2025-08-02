@@ -6,7 +6,7 @@ import axios from 'axios';
 import Papa from 'papaparse';
 
 function DashBoard() {
-  axios.defaults.baseURL = 'http://localhost:4444';
+  // axios.defaults.baseURL = 'http://localhost:4444';
   const location = useLocation();
 
   const nameRef = useRef();
@@ -191,7 +191,7 @@ function DashBoard() {
 
       {/* CSV File upload */}
       <div className='file-upload'>
-        <h3>Upload CSV File(Task File)</h3>
+        <h3>Upload CSV File(First Name , Phone No, Notes)</h3>
         <input type='file' accept='.csv, .xlsx, .xls' onChange={handleFileUpload} />
       </div>
 

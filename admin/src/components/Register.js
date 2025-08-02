@@ -6,7 +6,7 @@ function Register() {
   let emailRef = useRef();
   let passwordRef = useRef();
 
-  axios.defaults.baseURL = 'http://localhost:4444';
+  // axios.defaults.baseURL = 'http://localhost:4444';
 
   let registerUser = async () => {
 

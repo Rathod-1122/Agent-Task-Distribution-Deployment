@@ -7,7 +7,7 @@ function LoginPage() {
   let emailRef = useRef();
   let passwordRef = useRef();
 
-  axios.defaults.baseURL = 'http://localhost:4444';
+  // axios.defaults.baseURL = 'http://localhost:4444';
   let navObject = useNavigate();
 
   let userLogin = async () => {
