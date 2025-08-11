@@ -1,4 +1,5 @@
 
+
 import React, { useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import axios from 'axios';
@@ -21,7 +22,7 @@ function DashBoard() {
   const [phone, setPhone] = useState('');
   const [editForm, setEditForm] = useState(null); // stores current agent being edited
 
-  // Live validation state
+  // Live validation state for Add form
   const [errors, setErrors] = useState({
     name: '',
     email: '',
@@ -29,11 +30,19 @@ function DashBoard() {
     password: ''
   });
 
+  // Separate validation state for Edit form
+  const [editErrors, setEditErrors] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    password: ''
+  });
+
   const validateInput = (field) => {
-    const name = nameRef.current.value.trim();
-    const email = emailRef.current.value.trim();
-    const phoneVal = phoneNoRef.current.value.trim();
-    const password = passwordRef.current.value.trim();
+    const name = nameRef.current?.value?.trim() ?? '';
+    const email = emailRef.current?.value?.trim() ?? '';
+    const phoneVal = phoneNoRef.current?.value?.trim() ?? '';
+    const password = passwordRef.current?.value?.trim() ?? '';
     let newErrors = { ...errors };
 
     if (field === "name") {
@@ -77,6 +86,38 @@ function DashBoard() {
     }
 
     setErrors(newErrors);
+  };
+
+  // Validation for edit form (works with values passed in)
+  const validateEditInput = (field, value) => {
+    let newErrors = { ...editErrors };
+    const trimmed = (value ?? '').toString().trim();
+
+    if (field === "name") {
+      newErrors.name = !trimmed ? "Name is required." : "";
+    }
+
+    if (field === "email") {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!trimmed) newErrors.email = "Email is required.";
+      else if (!emailRegex.test(trimmed)) newErrors.email = "Email must be valid.";
+      else newErrors.email = "";
+    }
+
+    if (field === "phone") {
+      const phoneRegex = /^\+\d{1,3}\s?\d{10}$/;
+      if (!trimmed) newErrors.phone = "Phone number is required.";
+      else if (!phoneRegex.test(trimmed)) newErrors.phone = "Phone must be like: +91 9876367878";
+      else newErrors.phone = "";
+    }
+
+    if (field === "password") {
+      if (!trimmed) newErrors.password = "Password is required.";
+      else if (trimmed.length < 6) newErrors.password = "Password must be at least 6 characters.";
+      else newErrors.password = "";
+    }
+
+    setEditErrors(newErrors);
   };
 
   const handleAddAgent = () => {
@@ -137,40 +178,36 @@ function DashBoard() {
     });
   };
 
-
   const distributeTasksToAgents = () => {
-  if (taskList.length === 0) {
-    alert("No tasks to distribute");
-    return;
-  }
+    if (taskList.length === 0) {
+      alert("No tasks to distribute");
+      return;
+    }
 
-  if (listOfAgents.length === 0) {
-    console.warn("No agents available, tasks won't be assigned");
-    return;
-  }
+    if (listOfAgents.length === 0) {
+      console.warn("No agents available, tasks won't be assigned");
+      return;
+    }
 
+    try {
+      const distribution = {};
+      listOfAgents.forEach(agent => {
+        distribution[agent.name] = [];
+      });
 
-  try{
-    // Distribute tasks evenly to all agents
-  const distribution = {};
-  listOfAgents.forEach(agent => {
-    distribution[agent.name] = [];
-  });
+      taskList.forEach((task, idx) => {
+        const agentIndex = idx % listOfAgents.length;
+        const agentName = listOfAgents[agentIndex].name;
+        distribution[agentName].push(task);
+      });
 
-  taskList.forEach((task, idx) => {
-    const agentIndex = idx % listOfAgents.length; // Now uses all agents
-    const agentName = listOfAgents[agentIndex].name;
-    distribution[agentName].push(task);
-  });
-
-  console.log("Task Distribution:", distribution);
-  setDistributedData(distribution)
-  alert('distributed the task successfully')
-  }catch(err){
-    alert('task distribution failed')
-  }
-  
-};
+      console.log("Task Distribution:", distribution);
+      setDistributedData(distribution);
+      alert('distributed the task successfully');
+    } catch (err) {
+      alert('task distribution failed');
+    }
+  };
 
   const saveDistributedDataToDB = async () => {
     try {
@@ -190,7 +227,7 @@ function DashBoard() {
     try {
       const res = await axios.get('/fetchDistributedData');
       const resData = {};
-      console.log('the response data in fetch key is :',res.data)
+      console.log('the response data in fetch key is :', res.data);
       if (res.data.length === 0) alert('No saved distributed data found.');
       res.data.forEach((item) => {
         resData[item.agentEmail] = item.tasks;
@@ -201,42 +238,53 @@ function DashBoard() {
     }
   };
 
-
-
-let editAgent = (ind) => {
-  const agent = listOfAgents[ind];
-  setEditForm({ ...agent, index: ind }); // store index and data
-};
-
-let handleUpdatedAddAgent = () => {
-  if (!editForm) return;
-
-  const updatedAgents = [...listOfAgents];
-  updatedAgents[editForm.index] = {
-    name: editForm.name,
-    email: editForm.email,
-    phoneNo: editForm.phoneNo,
-    password: editForm.password
+  let editAgent = (ind) => {
+    const agent = listOfAgents[ind];
+    // initialize edit form and clear any previous edit errors
+    setEditForm({ ...agent, index: ind });
+    setEditErrors({ name: '', email: '', phone: '', password: '' });
   };
-  setListOfAgents(updatedAgents);
-  setEditForm(null); // close edit form
-};
 
+  let handleUpdatedAddAgent = () => {
+    if (!editForm) return;
 
-let deleteAgent = (ind) => {
-  // Show confirmation popup
-  const confirmDelete = window.confirm("Are you sure you want to delete this agent?");
-  
-  if (confirmDelete) {
-    let updatedTaskList = [...listOfAgents];
-    console.log('The list of agents and delete index are:', updatedTaskList, ind);
-    updatedTaskList.splice(ind, 1);
-    setListOfAgents(updatedTaskList);
-  } else {
-    console.log("Agent deletion cancelled.");
-  }
-};
+    // Ensure fields not empty
+    if (!editForm.name?.trim() || !editForm.email?.trim() || !editForm.phoneNo?.trim() || !editForm.password?.trim()) {
+      alert('Please fill all fields before saving.');
+      return;
+    }
 
+    // Ensure no validation errors
+    if (Object.values(editErrors).some((e) => e)) {
+      alert('Please fix the validation errors before saving.');
+      return;
+    }
+
+    const updatedAgents = [...listOfAgents];
+    updatedAgents[editForm.index] = {
+      name: editForm.name.trim(),
+      email: editForm.email.trim(),
+      phoneNo: editForm.phoneNo.trim(),
+      password: editForm.password.trim()
+    };
+    setListOfAgents(updatedAgents);
+    setEditForm(null); // close edit form
+    setEditErrors({ name: '', email: '', phone: '', password: '' });
+  };
+
+  let deleteAgent = (ind) => {
+    // Show confirmation popup
+    const confirmDelete = window.confirm("Are you sure you want to delete this agent?");
+
+    if (confirmDelete) {
+      let updatedTaskList = [...listOfAgents];
+      console.log('The list of agents and delete index are:', updatedTaskList, ind);
+      updatedTaskList.splice(ind, 1);
+      setListOfAgents(updatedTaskList);
+    } else {
+      console.log("Agent deletion cancelled.");
+    }
+  };
 
   return (
     <div className='dashboard-container'>
@@ -299,7 +347,8 @@ let deleteAgent = (ind) => {
           </button>
         </div>
       </form>
-      {/* Tabel which shows the Eddit Agents data */}
+
+      {/* Edit Agent Form */}
       {editForm && (
         <form className="agent-form" onSubmit={(e) => e.preventDefault()}>
           <h3><u>Edit Agent</u></h3>
@@ -308,35 +357,78 @@ let deleteAgent = (ind) => {
             <input
               type="text"
               value={editForm.name}
-              onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+              onChange={(e) => {
+                const v = e.target.value;
+                setEditForm({ ...editForm, name: v });
+                validateEditInput("name", v);
+              }}
             />
+            {editErrors.name && <p style={{ color: 'red', fontSize: '0.85rem' }}>{editErrors.name}</p>}
           </div>
           <div>
             <label>Email</label>
             <input
               type="email"
               value={editForm.email}
-              onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+              onChange={(e) => {
+                const v = e.target.value;
+                setEditForm({ ...editForm, email: v });
+                validateEditInput("email", v);
+              }}
             />
+            {editErrors.email && <p style={{ color: 'red', fontSize: '0.85rem' }}>{editErrors.email}</p>}
           </div>
           <div>
             <label>Phone Number</label>
             <input
               type="tel"
               value={editForm.phoneNo}
-              onChange={(e) => setEditForm({ ...editForm, phoneNo: e.target.value })}
+              onChange={(e) => {
+                const v = e.target.value;
+                setEditForm({ ...editForm, phoneNo: v });
+                validateEditInput("phone", v);
+              }}
+              placeholder='+91 9876543210'
             />
+            {editErrors.phone && <p style={{ color: 'red', fontSize: '0.85rem' }}>{editErrors.phone}</p>}
           </div>
           <div>
             <label>Password</label>
             <input
               type="text"
               value={editForm.password}
-              onChange={(e) => setEditForm({ ...editForm, password: e.target.value })}
+              onChange={(e) => {
+                const v = e.target.value;
+                setEditForm({ ...editForm, password: v });
+                validateEditInput("password", v);
+              }}
             />
+            {editErrors.password && <p style={{ color: 'red', fontSize: '0.85rem' }}>{editErrors.password}</p>}
           </div>
           <div>
-            <button type="button" onClick={handleUpdatedAddAgent}>Save Changes</button>
+            <button
+              type="button"
+              onClick={handleUpdatedAddAgent}
+              disabled={
+                Object.values(editErrors).some((err) => err) ||
+                !editForm.name ||
+                !editForm.email ||
+                !editForm.phoneNo ||
+                !editForm.password
+              }
+            >
+              Save Changes
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setEditForm(null);
+                setEditErrors({ name: '', email: '', phone: '', password: '' });
+              }}
+              style={{ marginLeft: 8 }}
+            >
+              Cancel
+            </button>
           </div>
         </form>
       )}
@@ -361,14 +453,30 @@ let deleteAgent = (ind) => {
               <td>{agent.email}</td>
               <td>{agent.phoneNo}</td>
               <td>{agent.password}</td>
-              <td><button type='button' style={{ backgroundColor: 'green', color: 'white' }} onClick={()=>{
-                editAgent(i);
-              }}>Edit</button></td>
-              
-              <td><button type='button' style={{ backgroundColor: 'red', color: 'white' }}  onClick={()=>{
-                deleteAgent(i);
-              }}>Delete</button></td>
-              
+              <td>
+                <button
+                  type='button'
+                  style={{ backgroundColor: 'green', color: 'white' }}
+                  onClick={() => {
+                    editAgent(i);
+                  }}
+                >
+                  Edit
+                </button>
+              </td>
+
+              <td>
+                <button
+                  type='button'
+                  style={{ backgroundColor: 'red', color: 'white' }}
+                  onClick={() => {
+                    deleteAgent(i);
+                  }}
+                >
+                  Delete
+                </button>
+              </td>
+
             </tr>
           ))}
         </tbody>
