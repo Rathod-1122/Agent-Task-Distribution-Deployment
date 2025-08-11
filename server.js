@@ -18,7 +18,7 @@ app.listen(4444, () => {
 
 //------------Code for deployment------------
 // code for the server.js file is below:
-// app.use(express.static(path.join(__dirname,"./admin/build")));
+app.use(express.static(path.join(__dirname,"./admin/build")));
 // app.get("*",(req,res)=>{
 //     res.sendFile(path.join(__dirname,"./admin/build/index.html"));
 // });
