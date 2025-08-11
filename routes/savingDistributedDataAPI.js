@@ -13,7 +13,7 @@ app.use(express.json());
 // Save distributed data
 router.post('/saveDistributedData', async (req, res) => {
   try {
-    // console.log('the distributed data is :',req.body)
+    console.log('the distributed data is :',req.body)
     const data = req.body;
     const savePromises = Object.entries(data).map(async ([email, tasks]) => {
       return DistributedTask.findOneAndUpdate(

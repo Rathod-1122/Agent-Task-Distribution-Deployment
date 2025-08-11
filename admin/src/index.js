@@ -3,12 +3,27 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
+import {createStore} from 'redux';
+import {Provider} from 'react-redux';
+
+
+let initialStore={employeesLoginData:{}}
+
+let loginReducer=(latestStore=initialStore,dispatchObj)=>{
+  console.log('inside login reducer')
+  if(dispatchObj.type=='employeesLogData')
+    return {...latestStore,employeesLoginData:dispatchObj.data};
+
+  return latestStore;
+}
+
+let store = createStore(loginReducer);
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
-  <React.StrictMode>
+  <Provider store={store}>
     <App />
-  </React.StrictMode>
+  </Provider>
 );
 
 // If you want to start measuring performance in your app, pass a function

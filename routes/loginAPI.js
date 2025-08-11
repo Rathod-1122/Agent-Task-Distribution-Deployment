@@ -2,33 +2,39 @@
 
 const express = require('express');
 const jwt = require('jsonwebtoken')
+const bcrypt = require('bcrypt')
 const router = express.Router();
 const dotenv = require('dotenv')
+dotenv.config();
 const users = require('../models/UserRegisterSchema');
 
 // app.use(express.json());
 router.get('/login/:email/:password', async (req, res) => {
+  console.log('inside the login api')
 
-  // console.log('inside the login API')
-  let result = await users.find();
+  let result = await users.find().and({email:req.params.email});
 
   if (result.length > 0) {
+    console.log('email is valid')
     for (i = 0; i < result.length; i++) {
-      decrypt = jwt.verify(result[i].userEmailAndPasswordToken, process.env.jwtSecretKey);
-      // console.log(decrypt)
-      if (decrypt.email == req.params.email) {
-        if (decrypt.password == req.params.password) {
-          return res.json({ status: 'success', message: 'user loged in successfully' })
+
+      let isPasswordCorrect = await bcrypt.compare(req.params.password,result[i].password)
+      console.log('the isPasswordCorrect value is :',isPasswordCorrect)
+      if(isPasswordCorrect)
+        {
+          let token=jwt.sign({email:result[i].email,password:result[i].password},'key');
+          console.log('password is matched')
+          return res.json({status:'success',message:'user login successfull',data:{email:result[i].email},encryptedData:token})
         }
-        else {
-          return res.json({ status: 'failed', message: 'enter the valid password' })
+        if(i===result.length-1){
+          console.log('enter the correct password')
+          return res.json({status: 'failed',message:'enter the correct password'})
         }
-      }
     }
-    return res.json({ status: 'failed', message: 'enter the valid email' })
+   
   }
   else {
-    return res.json({ message: 'There are no any users in the database,please register first' })
+    return res.json({ status: 'failed', message: 'enter the correct email' })
   }
 
 })

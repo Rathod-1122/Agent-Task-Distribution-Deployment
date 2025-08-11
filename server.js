@@ -17,11 +17,13 @@ app.listen(4444, () => {
 
 
 //------------Code for deployment------------
-app.use(express.static(path.join(__dirname,"./admin/build")));
-
+// code for the server.js file is below:
+// app.use(express.static(path.join(__dirname,"./admin/build")));
 // app.get("*",(req,res)=>{
 //     res.sendFile(path.join(__dirname,"./admin/build/index.html"));
 // });
+//code for the package.json file is below(it should be kept inside the scripts key):
+// "build":"npm install --prefix ./admin && npm run build --prefix ./admin && npm install",
 //---------------------------------------
 
 
@@ -32,7 +34,7 @@ let connectToDB = async () => {
     await mongoose.connect(process.env.MDBConnectionString);
     console.log('server has connected to Data Base')
   } catch (err) {
-    console.log('server unable to connect to the Data Base')
+    console.log('server unable to connect to the Data Base',err)
   }
 }
 connectToDB();
