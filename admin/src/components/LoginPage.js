@@ -12,7 +12,7 @@ function LoginPage() {
   let [loading, setLoading] = useState(false);
   let [errors, setErrors] = useState({ email: '', password: '' });
 
-  axios.defaults.baseURL = 'http://localhost:4444';
+  // axios.defaults.baseURL = 'http://localhost:4444';
 
   // Live input validation
   let handleInputChange = (field) => {
